@@ -1,0 +1,2 @@
+# Pathfinding-project
+Discrete math
