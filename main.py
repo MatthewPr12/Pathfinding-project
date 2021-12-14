@@ -108,31 +108,10 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
         del open_dict[curr_vertex]  # remove vertex with the lowest f_value from the open list
 
 
-# def parse_csv_into_graph(filename):
-#     """
-#     Parsing csv file into
-#     :param filename:
-#     :return:
-#     """
-#     with open(filename, mode='r', encoding='utf-8') as file:
-#         lines = file.read().split('\n')[:-1]
-#     vertex_count, step = map(int, lines[0].split(' '))
-#     start_vertex = tuple(map(int, lines[1].split(' ')))
-#     finish_vertex = tuple(map(int, lines[2].split(' ')))
-#     not_parsed_grid = [line.split(' ') for line in lines[3:]]
-#     graph = []
-#     for i in range(len(not_parsed_grid)):
-#         graph.append([])
-#         for k in range(len(not_parsed_grid[i])-1):
-#             if k % 2 == 0:
-#                 graph[i].append((float(not_parsed_grid[i][k]), float(not_parsed_grid[i][k+1])))
-#     return graph, vertex_count, step, start_vertex, finish_vertex
-
 def main():
     pass
 
 
 if __name__ == '__main__':
-    # parse_csv_into_graph('task1\\task1_data\\example1.csv')
     print(find_adjacent((2, 1), [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
     main()
