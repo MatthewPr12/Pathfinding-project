@@ -86,6 +86,7 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
     start_value = [start_g, start_heuristic, start_f, ()]
     # last element is empty tuple because start vertex doesn't have previous one
     open_dict[start_vertex] = start_value
+    path = []
     while curr_vertex != finish_vertex:
         # this is the main while loop
         # which runs till we get to our final destination
@@ -103,10 +104,14 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
                 if vertex_f < f_adj:
                     f_adj = vertex_f
                     curr_vertex = vertex
+                    got_from = open_dict[curr_vertex][-1]
+                    path.append(got_from)
         closed_set.add(curr_vertex)
         # get the vertex with the minimum f_value from the open dict and make it current
         curr_vertex = min(open_dict.items(), key=lambda x: x[1][-2])[0]
+        the_distance = open_dict[curr_vertex][0]
         del open_dict[curr_vertex]  # remove vertex with the lowest f_value from the open list
+    return path, the_distance
 
 
 def main():
