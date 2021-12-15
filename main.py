@@ -27,12 +27,13 @@ def calc_f_value(g_distance, heuristic_distance):
     """
     return g_distance + heuristic_distance
 
-print(calc_f_value(465, 234))
+
 def find_adjacent(curr_vertex, graph):
     """
     this function find ALL the vertexes that are connected to the current
     one based on the next condition:
     only those vertexes are connected that have a difference=1 of only one parameter (either x or y)
+    :param graph:
     :param curr_vertex:
     :return: adjacent_list
     adjacent_list is gonna be a list of tuples
