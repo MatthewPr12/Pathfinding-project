@@ -48,15 +48,16 @@ def find_adjacent(curr_vertex, graph):
     """
     adjacent_list = []
     x, y = curr_vertex[0], curr_vertex[1]
-    if x-1 >= 0:
-        adjacent_list.append((x-1, y))
-    if y-1 >= 0:
-        adjacent_list.append((x, y-1))
-    if x+1 < len(graph):
-        adjacent_list.append((x+1, y))
-    if y+1 < len(graph[0]):
-        adjacent_list.append((x, y+1))
+    if x - 1 >= 0:
+        adjacent_list.append((x - 1, y))
+    if y - 1 >= 0:
+        adjacent_list.append((x, y - 1))
+    if x + 1 < len(graph):
+        adjacent_list.append((x + 1, y))
+    if y + 1 < len(graph[0]):
+        adjacent_list.append((x, y + 1))
     return adjacent_list
+
 
 def parsing_info(graph, step, start_vertex, finish_vertex):
     """
@@ -86,6 +87,7 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
     start_value = [start_g, start_heuristic, start_f, ()]
     # last element is empty tuple because start vertex doesn't have previous one
     open_dict[start_vertex] = start_value
+    path = []
     while curr_vertex != finish_vertex:
         # this is the main while loop
         # which runs till we get to our final destination
@@ -103,10 +105,14 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
                 if vertex_f < f_adj:
                     f_adj = vertex_f
                     curr_vertex = vertex
+                    got_from = open_dict[curr_vertex][-1]
+                    path.append(got_from)
         closed_set.add(curr_vertex)
         # get the vertex with the minimum f_value from the open dict and make it current
         curr_vertex = min(open_dict.items(), key=lambda x: x[1][-2])[0]
+        the_distance = open_dict[curr_vertex][0]
         del open_dict[curr_vertex]  # remove vertex with the lowest f_value from the open list
+    return path, the_distance
 
 
 def main():
@@ -114,5 +120,6 @@ def main():
 
 
 if __name__ == '__main__':
-    print(find_adjacent((2, 1), [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
+    print(find_adjacent((2, 1),
+                        [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
     main()
