@@ -27,7 +27,7 @@ def calc_f_value(g_distance, heuristic_distance):
     """
     return g_distance + heuristic_distance
 
-print(calc_f_value(465, 234))
+
 def find_adjacent(curr_vertex, graph):
     """
     this function find ALL the vertexes that are connected to the current
@@ -47,15 +47,16 @@ def find_adjacent(curr_vertex, graph):
     """
     adjacent_list = []
     x, y = curr_vertex[0], curr_vertex[1]
-    if x-1 >= 0:
-        adjacent_list.append((x-1, y))
-    if y-1 >= 0:
-        adjacent_list.append((x, y-1))
-    if x+1 < len(graph):
-        adjacent_list.append((x+1, y))
-    if y+1 < len(graph[0]):
-        adjacent_list.append((x, y+1))
+    if x - 1 >= 0:
+        adjacent_list.append((x - 1, y))
+    if y - 1 >= 0:
+        adjacent_list.append((x, y - 1))
+    if x + 1 < len(graph):
+        adjacent_list.append((x + 1, y))
+    if y + 1 < len(graph[0]):
+        adjacent_list.append((x, y + 1))
     return adjacent_list
+
 
 def parsing_info(graph, step, start_vertex, finish_vertex):
     """
@@ -113,5 +114,6 @@ def main():
 
 
 if __name__ == '__main__':
-    print(find_adjacent((2, 1), [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
+    print(find_adjacent((2, 1),
+                        [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
     main()
