@@ -6,7 +6,7 @@ z: the height given as the element of the list
 """
 
 
-def calc_heuristic(curr_vertex, finish_vertex):
+def calc_heuristic(curr_vertex, finish_vertex, graph):
     """
     calculate heuristic distance for the current vertex
     PS: that's manhattan distance which counts based on x,y,z
@@ -15,7 +15,11 @@ def calc_heuristic(curr_vertex, finish_vertex):
     :param finish_vertex:
     :return:
     """
-    pass
+    x_difference = abs(curr_vertex[0] - finish_vertex[0])
+    y_difference = abs(curr_vertex[1] - finish_vertex[1])
+    z_start, z_finish = graph[curr_vertex[1]][curr_vertex[0]], graph[finish_vertex[1]][finish_vertex[0]]
+    z_difference = abs(z_start-z_finish)
+    return x_difference + y_difference + z_difference
 
 
 def calc_f_value(g_distance, heuristic_distance):
@@ -113,6 +117,8 @@ def main():
     pass
 
 
-if __name__ == '__main__':
-    print(find_adjacent((2, 1), [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
-    main()
+# if __name__ == '__main__':
+#     print(find_adjacent((2, 1), [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
+#     main()
+
+print(calc_heuristic((1,2),(2,1), [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
