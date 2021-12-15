@@ -23,11 +23,11 @@ def calc_f_value(g_distance, heuristic_distance):
     literally the sum of both arguments
     :param g_distance:
     :param heuristic_distance:
-    :return:
+    :return: the sum of two given arguments
     """
-    pass
+    return g_distance + heuristic_distance
 
-
+print(calc_f_value(465, 234))
 def find_adjacent(curr_vertex, graph):
     """
     this function find ALL the vertexes that are connected to the current
