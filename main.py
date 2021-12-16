@@ -4,6 +4,28 @@ x: index in the inner list
 y: index in the main nested list
 z: the height given as the element of the list
 """
+import csv
+
+
+def read_csv(path_to_file):
+    """
+    the function which turns csv file into the nested list
+    :param path_to_file:
+    :return:
+    """
+    graph = []
+    with open(path_to_file, "r", encoding="utf-8") as my_file:
+        csv_reader = csv.reader(my_file, delimiter=" ")
+        for idx, row in enumerate(csv_reader):
+            if idx > 2:
+                for k in range(len(row)):
+                    row[k] = float(row[k])
+                graph.append(row)
+            elif idx == 2:
+                ending_vertex = [float(row[-2]), float(row[-1])]
+            elif idx == 1:
+                starting_vertex = [float(row[-2]), float(row[-1])]
+    return starting_vertex, ending_vertex, graph
 
 
 def calc_heuristic(curr_vertex, finish_vertex, graph):
@@ -123,6 +145,10 @@ def main():
     pass
 
 if __name__ == '__main__':
+    # print(find_adjacent((2, 1),
+    #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
+    # main()
+    print(read_csv("/Users/matthewprytula/pythonProject/Pathfinding-project/task1/task1_data/example1.csv"))
     print(find_adjacent((2, 1),
                         [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
     main()
