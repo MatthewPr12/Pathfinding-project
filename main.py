@@ -28,7 +28,7 @@ def read_csv(path_to_file):
     return starting_vertex, ending_vertex, graph
 
 
-def calc_heuristic(curr_vertex, finish_vertex):
+def calc_heuristic(curr_vertex, finish_vertex, graph):
     """
     calculate heuristic distance for the current vertex
     PS: that's manhattan distance which counts based on x,y,z
@@ -37,7 +37,11 @@ def calc_heuristic(curr_vertex, finish_vertex):
     :param finish_vertex:
     :return:
     """
-    pass
+    x_difference = abs(curr_vertex[0] - finish_vertex[0])
+    y_difference = abs(curr_vertex[1] - finish_vertex[1])
+    z_start, z_finish = graph[curr_vertex[1]][curr_vertex[0]], graph[finish_vertex[1]][finish_vertex[0]]
+    z_difference = abs(z_start-z_finish)
+    return x_difference + y_difference + z_difference
 
 
 def calc_f_value(g_distance, heuristic_distance):
@@ -55,6 +59,7 @@ def find_adjacent(curr_vertex, graph):
     this function find ALL the vertexes that are connected to the current
     one based on the next condition:
     only those vertexes are connected that have a difference=1 of only one parameter (either x or y)
+    :param graph:
     :param curr_vertex:
     :return: adjacent_list
     adjacent_list is gonna be a list of tuples
@@ -139,9 +144,12 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
 def main():
     pass
 
-
 if __name__ == '__main__':
     # print(find_adjacent((2, 1),
     #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
     # main()
     print(read_csv("/Users/matthewprytula/pythonProject/Pathfinding-project/task1/task1_data/example1.csv"))
+    print(find_adjacent((2, 1),
+                        [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
+    main()
+
