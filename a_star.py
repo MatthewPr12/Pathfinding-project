@@ -26,7 +26,7 @@ def read_csv(path_to_file):
             elif idx == 2:
                 ending_vertex = (int(row[-2]), int(row[-1]))
             elif idx == 1:
-                starting_vertex = (int(row[-2]), int(row[-1][:-1]))
+                starting_vertex = (int(row[-2]), int(row[-1]))
     return starting_vertex, ending_vertex, graph
 
 
@@ -172,7 +172,7 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
     start_heuristic = calc_heuristic(start_vertex, finish_vertex, graph, step)
     start_g = 0  # g_distance of a start vertex is 0 as it is the distance to start vertex
     start_f = start_heuristic + start_g
-    start_value = [start_g, start_heuristic, start_f, None]
+    start_value = [start_g, start_f, None]
     # last element is None because start vertex doesn't have parent :(
     open_dict[start_vertex] = start_value
     path = []
@@ -186,8 +186,8 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
                 vertex_g = open_dict[curr_vertex][0] + step * 1  # get the g_distance of the vertex from
                 # which we got here and add the step multiplied by the difference=1
                 vertex_h = calc_heuristic(vertex, finish_vertex, graph, step)
-                vertex_f = calc_f_value(vertex_g, vertex_h)
-                vertex_value = [vertex_g, vertex_h, vertex_f, curr_vertex]
+                vertex_f = vertex_g + vertex_h
+                vertex_value = [vertex_g, vertex_f, curr_vertex]
                 open_dict[vertex] = vertex_value  # add the vertex to the open dict
                 if vertex_f < f_adj:
                     f_adj = vertex_f
@@ -214,8 +214,8 @@ if __name__ == '__main__':
 
     info = read_csv("/Users/matthewprytula/pythonProject/Pathfinding-project/task1/task1_data/example1.csv")
     graph = info[-1]
-    # start = info[0]
-    # finish = info[1]
+    start = info[0]
+    finish = info[1]
     # print(parsing_info(graph, 2, start, finish))
     # print(find_adjacent((2, 1),
     #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
@@ -226,8 +226,8 @@ if __name__ == '__main__':
              # [54, 4, 72, 27, 227, 25, 70, 2793, 3, 3], [23, 647, 3, 456, 38, 2, 8, 2, 47, 457],
              # [362, 7, 2, 28, 29, 49, 50, 37, 547, 8356]]
     # print(len(graph))
-    start = (350, 360)
-    finish = (1730, 1400)
+    # start = (350, 360)
+    # finish = (1730, 1400)
     # print(info)
     print(path_finding(graph, start, finish, 5))
     print("found")
