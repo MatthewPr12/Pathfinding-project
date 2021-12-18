@@ -22,9 +22,9 @@ def read_csv(path_to_file):
                     row[k] = float(row[k])
                 graph.append(row)
             elif idx == 2:
-                ending_vertex = [float(row[-2]), float(row[-1])]
+                ending_vertex = (int(row[-2]), int(row[-1]))
             elif idx == 1:
-                starting_vertex = [float(row[-2]), float(row[-1])]
+                starting_vertex = (int(row[-2]), int(row[-1]))
     return starting_vertex, ending_vertex, graph
 
 
@@ -40,7 +40,7 @@ def calc_heuristic(curr_vertex, finish_vertex, graph):
     x_difference = abs(curr_vertex[0] - finish_vertex[0])
     y_difference = abs(curr_vertex[1] - finish_vertex[1])
     z_start, z_finish = graph[curr_vertex[1]][curr_vertex[0]], graph[finish_vertex[1]][finish_vertex[0]]
-    z_difference = abs(z_start-z_finish)
+    z_difference = abs(z_start - z_finish)
     return x_difference + y_difference + z_difference
 
 
@@ -85,6 +85,7 @@ def find_adjacent(curr_vertex, graph):
     return adjacent_list
 
 
+
 def parsing_info(graph, step, start_vertex, finish_vertex):
     """
     that is the function which ties up all the other functions
@@ -107,11 +108,11 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
     open_dict = {}
     closed_set = set()
     curr_vertex = start_vertex
-    start_heuristic = calc_heuristic(start_vertex, finish_vertex)
+    start_heuristic = calc_heuristic(start_vertex, finish_vertex, graph)
     start_g = 0  # g_distance of a start vertex is 0 as it is the distance to start vertex
     start_f = start_heuristic + start_g
-    start_value = [start_g, start_heuristic, start_f, ()]
-    # last element is empty tuple because start vertex doesn't have previous one
+    start_value = [start_g, start_heuristic, start_f, None]
+    # last element is None because start vertex doesn't have parent :(
     open_dict[start_vertex] = start_value
     path = []
     while curr_vertex != finish_vertex:
@@ -121,10 +122,9 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
         f_adj = float("inf")  # to find the minimum f_value
         for vertex in adjacent_vertexes:
             if vertex not in closed_set and vertex not in open_dict:
-                # that's where all the fun begins)
                 vertex_g = open_dict[curr_vertex][0] + step * 1  # get the g_distance of the vertex from
                 # which we got here and add the step multiplied by the difference=1
-                vertex_h = calc_heuristic(vertex, finish_vertex)
+                vertex_h = calc_heuristic(vertex, finish_vertex, graph)
                 vertex_f = calc_f_value(vertex_g, vertex_h)
                 vertex_value = [vertex_g, vertex_h, vertex_f, curr_vertex]
                 open_dict[vertex] = vertex_value  # add the vertex to the open dict
@@ -144,12 +144,16 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
 def main():
     pass
 
+
 if __name__ == '__main__':
     # print(find_adjacent((2, 1),
     #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
     # main()
-    print(read_csv("/Users/matthewprytula/pythonProject/Pathfinding-project/task1/task1_data/example1.csv"))
-    print(find_adjacent((2, 1),
-                        [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
+    info = read_csv("/Users/matthewprytula/pythonProject/Pathfinding-project/task1/task1_data/example1.csv")
+    graph = info[-1]
+    start = info[0]
+    finish = info[1]
+    print(parsing_info(graph, 2, start, finish))
+    # print(find_adjacent((2, 1),
+    #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
     main()
-
