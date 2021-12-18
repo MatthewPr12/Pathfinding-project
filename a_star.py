@@ -6,6 +6,7 @@ z: the height given as the element of the list
 """
 import csv
 import math
+import time
 
 
 def read_csv(path_to_file):
@@ -29,7 +30,7 @@ def read_csv(path_to_file):
     return starting_vertex, ending_vertex, graph
 
 
-def calc_heuristic(curr_vertex, finish_vertex, graph):
+def calc_heuristic(curr_vertex, finish_vertex, graph, step):
     """
     calculate heuristic distance for the current vertex
     PS: that's manhattan distance which counts based on x,y,z
@@ -38,12 +39,18 @@ def calc_heuristic(curr_vertex, finish_vertex, graph):
     :param finish_vertex:
     :return:
     """
-    x_difference = (curr_vertex[0] - finish_vertex[0])**2
-    y_difference = (curr_vertex[1] - finish_vertex[1])**2
+    x_difference = abs(curr_vertex[0] - finish_vertex[0])
+    y_difference = abs(curr_vertex[1] - finish_vertex[1])
     z_start = graph[curr_vertex[1]][curr_vertex[0]]
     z_finish = graph[finish_vertex[1]][finish_vertex[0]]
-    z_difference = (z_start - z_finish)**2
-    return math.sqrt(x_difference + y_difference + z_difference)
+    z_difference = abs(z_start - z_finish)
+    min_difference = min(x_difference, y_difference, z_difference)
+    max_difference = max(x_difference, y_difference, z_difference)
+    mid_difference = x_difference + y_difference + z_difference - min_difference - max_difference
+    d3 = math.hypot(step, step, step)
+    d2 = math.hypot(step, step)
+    d1 = step
+    return (d3-d2)*min_difference + (d2-d1)*mid_difference + d1*max_difference
 
 
 def calc_f_value(g_distance, heuristic_distance):
@@ -107,7 +114,7 @@ def path_finding(graph, start_vertex, finish_vertex, step):
     walked_through = {}  # store all the nodes that we walked through with their parents to get the path later
     walked_through[start_vertex] = None
     start_g = 0
-    start_h = calc_heuristic(start_vertex, finish_vertex, graph)
+    start_h = calc_heuristic(start_vertex, finish_vertex, graph, step)
     start_f = start_h + start_g
     start_parent = None
     open_dct = {}
@@ -129,7 +136,7 @@ def path_finding(graph, start_vertex, finish_vertex, step):
         for child in children:
             if child not in closed_lst:
                 child_g = curr_g + step * 1
-                child_h = calc_heuristic(child, finish_vertex, graph)
+                child_h = calc_heuristic(child, finish_vertex, graph, step)
                 child_f = child_g + child_h
                 if child in open_dct:
                     if child_f < open_dct[child][-2]:
@@ -162,7 +169,7 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
     open_dict = {}
     closed_set = set()
     curr_vertex = start_vertex
-    start_heuristic = calc_heuristic(start_vertex, finish_vertex, graph)
+    start_heuristic = calc_heuristic(start_vertex, finish_vertex, graph, step)
     start_g = 0  # g_distance of a start vertex is 0 as it is the distance to start vertex
     start_f = start_heuristic + start_g
     start_value = [start_g, start_heuristic, start_f, None]
@@ -178,7 +185,7 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
             if vertex not in closed_set and vertex not in open_dict:
                 vertex_g = open_dict[curr_vertex][0] + step * 1  # get the g_distance of the vertex from
                 # which we got here and add the step multiplied by the difference=1
-                vertex_h = calc_heuristic(vertex, finish_vertex, graph)
+                vertex_h = calc_heuristic(vertex, finish_vertex, graph, step)
                 vertex_f = calc_f_value(vertex_g, vertex_h)
                 vertex_value = [vertex_g, vertex_h, vertex_f, curr_vertex]
                 open_dict[vertex] = vertex_value  # add the vertex to the open dict
@@ -200,6 +207,7 @@ def main():
 
 
 if __name__ == '__main__':
+    st = time.time()
     # print(find_adjacent((2, 1),
     #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
     # main()
@@ -219,7 +227,9 @@ if __name__ == '__main__':
              # [362, 7, 2, 28, 29, 49, 50, 37, 547, 8356]]
     # print(len(graph))
     start = (0, 0)
-    finish = (300, 300)
+    finish = (500, 500)
     # print(info)
     print(path_finding(graph, start, finish, 5))
     print("found")
+    f = time.time()
+    print(f-st)
