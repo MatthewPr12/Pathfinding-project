@@ -4,9 +4,39 @@ x: index in the inner list
 y: index in the main nested list
 z: the height given as the element of the list
 """
+import csv
+import math
+import time
+
+global heuristic_time
+global f_time
+global find_adjacent_time
+global get_path_time
+global path_finding_time
 
 
-def calc_heuristic(curr_vertex, finish_vertex):
+def read_csv(path_to_file):
+    """
+    the function which turns csv file into the nested list
+    :param path_to_file:
+    :return:
+    """
+    graph = []
+    with open(path_to_file, "r", encoding="utf-8") as my_file:
+        csv_reader = csv.reader(my_file, delimiter=" ")
+        for idx, row in enumerate(csv_reader):
+            if idx > 2:
+                for k in range(len(row)):
+                    row[k] = float(row[k])
+                graph.append(row)
+            elif idx == 2:
+                ending_vertex = (int(row[-2]), int(row[-1]))
+            elif idx == 1:
+                starting_vertex = (int(row[-2]), int(row[-1][:-1]))
+    return starting_vertex, ending_vertex, graph
+
+
+def calc_heuristic(curr_vertex, finish_vertex, graph, step):
     """
     calculate heuristic distance for the current vertex
     PS: that's manhattan distance which counts based on x,y,z
@@ -15,7 +45,21 @@ def calc_heuristic(curr_vertex, finish_vertex):
     :param finish_vertex:
     :return:
     """
-    pass
+    global heuristic_time
+    starttime = time.time()
+    x_difference = abs(curr_vertex[0] - finish_vertex[0])
+    y_difference = abs(curr_vertex[1] - finish_vertex[1])
+    z_start = graph[curr_vertex[1]][curr_vertex[0]]
+    z_finish = graph[finish_vertex[1]][finish_vertex[0]]
+    z_difference = abs(z_start - z_finish)
+    min_difference = min(x_difference, y_difference, z_difference)
+    max_difference = max(x_difference, y_difference, z_difference)
+    mid_difference = x_difference + y_difference + z_difference - min_difference - max_difference
+    d3 = math.hypot(step, step, step)
+    d2 = math.hypot(step, step)
+    d1 = step
+    heuristic_time += time.time()-starttime
+    return (d3-d2)*min_difference + (d2-d1)*mid_difference + d1*max_difference
 
 
 def calc_f_value(g_distance, heuristic_distance):
@@ -23,9 +67,9 @@ def calc_f_value(g_distance, heuristic_distance):
     literally the sum of both arguments
     :param g_distance:
     :param heuristic_distance:
-    :return:
+    :return: the sum of two given arguments
     """
-    pass
+    return g_distance + heuristic_distance
 
 
 def find_adjacent(curr_vertex, graph):
@@ -33,6 +77,7 @@ def find_adjacent(curr_vertex, graph):
     this function find ALL the vertexes that are connected to the current
     one based on the next condition:
     only those vertexes are connected that have a difference=1 of only one parameter (either x or y)
+    :param graph:
     :param curr_vertex:
     :return: adjacent_list
     adjacent_list is gonna be a list of tuples
@@ -45,17 +90,80 @@ def find_adjacent(curr_vertex, graph):
     and some of them are going to be in the corner
     meaning they only have two adjacent vertexes
     """
-    adjacent_list = []
+    global find_adjacent_time
+    starttime = time.time()
+    adjacent_list = set()
     x, y = curr_vertex[0], curr_vertex[1]
-    if x-1 >= 0:
-        adjacent_list.append((x-1, y))
-    if y-1 >= 0:
-        adjacent_list.append((x, y-1))
-    if x+1 < len(graph):
-        adjacent_list.append((x+1, y))
-    if y+1 < len(graph[0]):
-        adjacent_list.append((x, y+1))
+    if x - 1 >= 0:
+        adjacent_list.add((x - 1, y))
+    if y - 1 >= 0:
+        adjacent_list.add((x, y - 1))
+    if x + 1 < len(graph):
+        adjacent_list.add((x + 1, y))
+    if y + 1 < len(graph[0]):
+        adjacent_list.add((x, y + 1))
+    find_adjacent_time += time.time() - starttime
     return adjacent_list
+
+
+def get_path(current_vertex, walked_through):
+    global get_path_time
+    starttime = time.time()
+    path = []
+    node = current_vertex
+    while node is not None:
+        path.append(node)
+        node = walked_through[node]
+    get_path_time += time.time() - starttime
+    return path[::-1]  # reversed path as we store it backwards
+
+
+def path_finding(graph, start_vertex, finish_vertex, step):
+    """
+
+    :param graph:
+    :param start_vertex:
+    :param finish_vertex:
+    :return: list of tuples (indexes x,y of each vertex in the path)
+    """
+    global path_finding_time
+    starttime = time.time()
+    walked_through = {}  # store all the nodes that we walked through with their parents to get the path later
+    walked_through[start_vertex] = None
+    start_g = 0
+    start_h = calc_heuristic(start_vertex, finish_vertex, graph, step)
+    start_f = start_h + start_g
+    start_parent = None
+    open_dct = {}
+    closed_lst = []
+    open_dct[start_vertex] = [start_g, start_h, start_f, start_parent]
+    while open_dct:
+        curr_vertex = min(open_dct.items(), key=lambda x: x[1][-2])[0]  # set the current vertex via smallest f
+        walked_through[curr_vertex] = open_dct[curr_vertex][-1]
+        curr_g = open_dct[curr_vertex][0]
+        del open_dct[curr_vertex]
+        closed_lst.append(curr_vertex)
+
+        # if got to the finish
+        if curr_vertex == finish_vertex:
+            return get_path(curr_vertex, walked_through)
+
+        # look through all the adjacent vertexes
+        children = find_adjacent(curr_vertex, graph)
+        for child in children:
+            if child not in closed_lst:
+                child_g = curr_g + step * 1
+                child_h = calc_heuristic(child, finish_vertex, graph, step)
+                child_f = child_g + child_h
+                if child in open_dct:
+                    if child_f < open_dct[child][-2]:
+                        open_dct[child][-2] = child_f
+                else:
+                    open_dct[child] = [child_g, child_h, child_f, curr_vertex]
+    print("The path does not exist")
+    path_finding_time += time.time() - starttime
+    return None
+
 
 def parsing_info(graph, step, start_vertex, finish_vertex):
     """
@@ -79,12 +187,13 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
     open_dict = {}
     closed_set = set()
     curr_vertex = start_vertex
-    start_heuristic = calc_heuristic(start_vertex, finish_vertex)
+    start_heuristic = calc_heuristic(start_vertex, finish_vertex, graph, step)
     start_g = 0  # g_distance of a start vertex is 0 as it is the distance to start vertex
     start_f = start_heuristic + start_g
-    start_value = [start_g, start_heuristic, start_f, ()]
-    # last element is empty tuple because start vertex doesn't have previous one
+    start_value = [start_g, start_heuristic, start_f, None]
+    # last element is None because start vertex doesn't have parent :(
     open_dict[start_vertex] = start_value
+    path = []
     while curr_vertex != finish_vertex:
         # this is the main while loop
         # which runs till we get to our final destination
@@ -92,20 +201,23 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
         f_adj = float("inf")  # to find the minimum f_value
         for vertex in adjacent_vertexes:
             if vertex not in closed_set and vertex not in open_dict:
-                # that's where all the fun begins)
                 vertex_g = open_dict[curr_vertex][0] + step * 1  # get the g_distance of the vertex from
                 # which we got here and add the step multiplied by the difference=1
-                vertex_h = calc_heuristic(vertex, finish_vertex)
+                vertex_h = calc_heuristic(vertex, finish_vertex, graph, step)
                 vertex_f = calc_f_value(vertex_g, vertex_h)
                 vertex_value = [vertex_g, vertex_h, vertex_f, curr_vertex]
                 open_dict[vertex] = vertex_value  # add the vertex to the open dict
                 if vertex_f < f_adj:
                     f_adj = vertex_f
                     curr_vertex = vertex
+                    got_from = open_dict[curr_vertex][-1]
+                    path.append(got_from)
         closed_set.add(curr_vertex)
         # get the vertex with the minimum f_value from the open dict and make it current
         curr_vertex = min(open_dict.items(), key=lambda x: x[1][-2])[0]
+        the_distance = open_dict[curr_vertex][0]
         del open_dict[curr_vertex]  # remove vertex with the lowest f_value from the open list
+    return path, the_distance
 
 
 def main():
@@ -113,5 +225,36 @@ def main():
 
 
 if __name__ == '__main__':
-    print(find_adjacent((2, 1), [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
-    main()
+    st = time.time()
+    heuristic_time = 0
+    f_time = 0
+    find_adjacent_time = 0
+    get_path_time = 0
+    path_finding_time = 0
+    # print(find_adjacent((2, 1),
+    #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
+    # main()
+
+    info = read_csv("/Users/matthewprytula/pythonProject/Pathfinding-project/task1/task1_data/example1.csv")
+    graph = info[-1]
+    # start = info[0]
+    # finish = info[1]
+    # print(parsing_info(graph, 2, start, finish))
+    # print(find_adjacent((2, 1),
+    #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
+    # main()
+    # graph = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [5, 3, 6, 2, 7, 345, 7, 34, 346, 46], [23, 4, 6, 3, 55, 474, 2, 45, 3, 0],
+             # [3, 4, 346, 44, 33, 4, 632, 63, 466, 34], [34, 34, 83, 422, 745, 55, 30, 35, 63, 97],
+             # [45, 6, 2, 545, 73, 2, 7, 245, 747, 4], [46, 4, 3, 1, 27, 4, 7, 74, 42, 54],
+             # [54, 4, 72, 27, 227, 25, 70, 2793, 3, 3], [23, 647, 3, 456, 38, 2, 8, 2, 47, 457],
+             # [362, 7, 2, 28, 29, 49, 50, 37, 547, 8356]]
+    # print(len(graph))
+    start = (0, 0)
+    finish = (500, 500)
+    # print(info)
+    print(path_finding(graph, start, finish, 5))
+    print("found")
+    f = time.time()
+    print(f'heuristic_time:{heuristic_time}, f_time:{f_time}, find_adjacent_time:{find_adjacent_time},'
+          f' get_path_time{get_path_time}, path_finding_time{path_finding_time}')
+    print(f-st)
