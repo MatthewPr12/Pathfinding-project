@@ -39,18 +39,20 @@ def calc_heuristic(curr_vertex, finish_vertex, graph, step):
     :param finish_vertex:
     :return:
     """
-    x_difference = abs(curr_vertex[0] - finish_vertex[0])
-    y_difference = abs(curr_vertex[1] - finish_vertex[1])
+
+    x_difference = (curr_vertex[0] - finish_vertex[0]) ** 2
+    y_difference = (curr_vertex[1] - finish_vertex[1]) ** 2
     z_start = graph[curr_vertex[1]][curr_vertex[0]]
     z_finish = graph[finish_vertex[1]][finish_vertex[0]]
     z_difference = abs(z_start - z_finish)
-    min_difference = min(x_difference, y_difference, z_difference)
-    max_difference = max(x_difference, y_difference, z_difference)
-    mid_difference = x_difference + y_difference + z_difference - min_difference - max_difference
-    d3 = math.hypot(step, step, step)
-    d2 = math.hypot(step, step)
-    d1 = step
-    return (d3-d2)*min_difference + (d2-d1)*mid_difference + d1*max_difference
+    # min_difference = min(x_difference, y_difference, z_difference)
+    # max_difference = max(x_difference, y_difference, z_difference)
+    # mid_difference = x_difference + y_difference + z_difference - min_difference - max_difference
+    # d3 = math.hypot(step, step, step)
+    # d2 = math.hypot(step, step)
+    # d1 = step
+    # return (d3-d2)*min_difference + (d2-d1)*mid_difference + d1*max_difference
+    return step * (math.sqrt(x_difference + y_difference) + z_difference)
 
 
 def calc_f_value(g_distance, heuristic_distance):
@@ -81,16 +83,16 @@ def find_adjacent(curr_vertex, graph):
     and some of them are going to be in the corner
     meaning they only have two adjacent vertexes
     """
-    adjacent_list = []
+    adjacent_list = set()
     x, y = curr_vertex[0], curr_vertex[1]
     if x - 1 >= 0:
-        adjacent_list.append((x - 1, y))
+        adjacent_list.add((x - 1, y))
     if y - 1 >= 0:
-        adjacent_list.append((x, y - 1))
+        adjacent_list.add((x, y - 1))
     if x + 1 < len(graph):
-        adjacent_list.append((x + 1, y))
+        adjacent_list.add((x + 1, y))
     if y + 1 < len(graph[0]):
-        adjacent_list.append((x, y + 1))
+        adjacent_list.add((x, y + 1))
     return adjacent_list
 
 
@@ -118,14 +120,14 @@ def path_finding(graph, start_vertex, finish_vertex, step):
     start_f = start_h + start_g
     start_parent = None
     open_dct = {}
-    closed_lst = []
+    closed_lst = set()
     open_dct[start_vertex] = [start_g, start_h, start_f, start_parent]
     while open_dct:
         curr_vertex = min(open_dct.items(), key=lambda x: x[1][-2])[0]  # set the current vertex via smallest f
         walked_through[curr_vertex] = open_dct[curr_vertex][-1]
         curr_g = open_dct[curr_vertex][0]
         del open_dct[curr_vertex]
-        closed_lst.append(curr_vertex)
+        closed_lst.add(curr_vertex)
 
         # if got to the finish
         if curr_vertex == finish_vertex:
@@ -212,7 +214,7 @@ if __name__ == '__main__':
     #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
     # main()
 
-    info = read_csv("/Users/matthewprytula/pythonProject/Pathfinding-project/task1/task1_data/example1.csv")
+    info = read_csv("task1/task1_data/example1.csv")
     graph = info[-1]
     # start = info[0]
     # finish = info[1]
@@ -227,7 +229,7 @@ if __name__ == '__main__':
              # [362, 7, 2, 28, 29, 49, 50, 37, 547, 8356]]
     # print(len(graph))
     start = (0, 0)
-    finish = (500, 500)
+    finish = (100, 100)
     # print(info)
     print(path_finding(graph, start, finish, 5))
     print("found")
