@@ -1,5 +1,5 @@
 """
-each vertex has three parametres which are its coordinates
+each vertex has three parameters which are its coordinates
 x: index in the inner list
 y: index in the main nested list
 z: the height given as the element of the list
@@ -7,13 +7,14 @@ z: the height given as the element of the list
 import csv
 import math
 import time
+import heapq
 
 
 def read_csv(path_to_file):
     """
     the function which turns csv file into the nested list
     :param path_to_file:
-    :return:
+    :return: starting node, ending node, the graph as a list of lists
     """
     graph = []
     with open(path_to_file, "r", encoding="utf-8") as my_file:
@@ -27,7 +28,9 @@ def read_csv(path_to_file):
                 ending_vertex = (int(row[-2]), int(row[-1]))
             elif idx == 1:
                 starting_vertex = (int(row[-2]), int(row[-1]))
-    return starting_vertex, ending_vertex, graph
+            elif idx == 0:
+                step = int(row[-1])
+    return step, starting_vertex, ending_vertex, graph
 
 
 def calc_heuristic(curr_vertex, finish_vertex, graph, step):
@@ -39,18 +42,13 @@ def calc_heuristic(curr_vertex, finish_vertex, graph, step):
     :param finish_vertex:
     :return:
     """
+
     x_difference = abs(curr_vertex[0] - finish_vertex[0])
     y_difference = abs(curr_vertex[1] - finish_vertex[1])
     z_start = graph[curr_vertex[1]][curr_vertex[0]]
     z_finish = graph[finish_vertex[1]][finish_vertex[0]]
-    z_difference = abs(z_start - z_finish) * step
-    min_difference = min(x_difference, y_difference, z_difference)
-    max_difference = max(x_difference, y_difference, z_difference)
-    mid_difference = x_difference + y_difference + z_difference - min_difference - max_difference
-    d3 = math.hypot(step, step, step)
-    d2 = math.hypot(step, step)
-    d1 = step
-    return (d3-d2)*min_difference + (d2-d1)*mid_difference + d1*max_difference
+    z_difference = abs(z_start - z_finish)
+    return (x_difference + y_difference) * step + z_difference
 
 
 def calc_f_value(g_distance, heuristic_distance):
@@ -73,7 +71,6 @@ def find_adjacent(curr_vertex, graph):
     :return: adjacent_list
     adjacent_list is gonna be a list of tuples
     each tuple consists of to integers: x and y index of a vertex
-
     ATTENTION:
     Please take into account the fact that not all vertexes are going to have
     four connected vertexes with them as some of them are going to be the ones on the side
@@ -81,73 +78,35 @@ def find_adjacent(curr_vertex, graph):
     and some of them are going to be in the corner
     meaning they only have two adjacent vertexes
     """
-    adjacent_set = set()
+    adjacent_list = set()
     x, y = curr_vertex[0], curr_vertex[1]
     if x - 1 >= 0:
-        adjacent_set.add((x - 1, y))
+        adjacent_list.add((x - 1, y))
     if y - 1 >= 0:
-        adjacent_set.add((x, y - 1))
+        adjacent_list.add((x, y - 1))
     if x + 1 < len(graph):
-        adjacent_set.add((x + 1, y))
+        adjacent_list.add((x + 1, y))
     if y + 1 < len(graph[0]):
-        adjacent_set.add((x, y + 1))
-    return adjacent_set
+        adjacent_list.add((x, y + 1))
+    return adjacent_list
 
 
-def get_path(current_vertex, walked_through):
+def get_path(current_vertex, prev_vertex):
+    """
+    this function returns the path from the nested list of parents nodes
+    :param current_vertex:
+    :param prev_vertex:
+    :return: path: list of tuples
+    """
     path = []
     node = current_vertex
     while node is not None:
         path.append(node)
-        node = walked_through[node]
+        node = prev_vertex[node[-1]][node[0]]
     return path[::-1]  # reversed path as we store it backwards
 
 
 def path_finding(graph, start_vertex, finish_vertex, step):
-    """
-
-    :param graph:
-    :param start_vertex:
-    :param finish_vertex:
-    :return: list of tuples (indexes x,y of each vertex in the path)
-    """
-    walked_through = {}  # store all the nodes that we walked through with their parents to get the path later
-    walked_through[start_vertex] = None
-    start_g = 0
-    start_h = calc_heuristic(start_vertex, finish_vertex, graph, step)
-    start_f = start_h + start_g
-    start_parent = None
-    open_dct = {}
-    closed_set = set()
-    open_dct[start_vertex] = [start_g, start_h, start_f, start_parent]
-    while open_dct:
-        curr_vertex = min(open_dct.items(), key=lambda x: x[1][-2])[0]  # set the current vertex via smallest f
-        walked_through[curr_vertex] = open_dct[curr_vertex][-1]
-        curr_g = open_dct[curr_vertex][0]
-        del open_dct[curr_vertex]
-        closed_set.add(curr_vertex)
-
-        # if got to the finish
-        if curr_vertex == finish_vertex:
-            return get_path(curr_vertex, walked_through)
-
-        # look through all the adjacent vertexes
-        children = find_adjacent(curr_vertex, graph)
-        for child in children:
-            if child not in closed_set:
-                child_g = curr_g + step * 1
-                child_h = calc_heuristic(child, finish_vertex, graph, step)
-                child_f = child_g + child_h
-                if child in open_dct:
-                    if child_f < open_dct[child][-2]:
-                        open_dct[child][-2] = child_f
-                else:
-                    open_dct[child] = [child_g, child_h, child_f, curr_vertex]
-    print("The path does not exist")
-    return None
-
-
-def parsing_info(graph, step, start_vertex, finish_vertex):
     """
     that is the function which ties up all the other functions
     and goes before main
@@ -166,70 +125,55 @@ def parsing_info(graph, step, start_vertex, finish_vertex):
     :param finish_vertex:
     :return:
     """
-    open_dict = {}
+    height, width = len(graph), len(graph[0])
+    prev_vertexes = [[None for _ in range(width)] for _ in range(height)]  # to get the path later
+    g_and_h = [[[float("inf"), float("inf")] for _ in range(width)] for _ in range(height)]
+    start_g = 0
+    start_h = calc_heuristic(start_vertex, finish_vertex, graph, step)
+    g_and_h[start_vertex[-1]][start_vertex[0]] = [start_g, start_h]
+    start_f = start_h + start_g
+    open_heap = []
     closed_set = set()
-    curr_vertex = start_vertex
-    start_heuristic = calc_heuristic(start_vertex, finish_vertex, graph, step)
-    start_g = 0  # g_distance of a start vertex is 0 as it is the distance to start vertex
-    start_f = start_heuristic + start_g
-    start_value = [start_g, start_f, None]
-    # last element is None because start vertex doesn't have parent :(
-    open_dict[start_vertex] = start_value
-    path = []
-    while curr_vertex != finish_vertex:
-        # this is the main while loop
-        # which runs till we get to our final destination
-        adjacent_vertexes = find_adjacent(curr_vertex, graph)
-        f_adj = float("inf")  # to find the minimum f_value
-        for vertex in adjacent_vertexes:
-            if vertex not in closed_set and vertex not in open_dict:
-                vertex_g = open_dict[curr_vertex][0] + step * 1  # get the g_distance of the vertex from
-                # which we got here and add the step multiplied by the difference=1
-                vertex_h = calc_heuristic(vertex, finish_vertex, graph, step)
-                vertex_f = vertex_g + vertex_h
-                vertex_value = [vertex_g, vertex_f, curr_vertex]
-                open_dict[vertex] = vertex_value  # add the vertex to the open dict
-                if vertex_f < f_adj:
-                    f_adj = vertex_f
-                    curr_vertex = vertex
-                    got_from = open_dict[curr_vertex][-1]
-                    path.append(got_from)
+    heapq.heappush(open_heap, [start_f, start_vertex])
+    while open_heap:
+        curr_vertex = heapq.heappop(open_heap)[-1]  # set the current vertex via smallest f
+        curr_g = g_and_h[curr_vertex[-1]][curr_vertex[0]][0]
         closed_set.add(curr_vertex)
-        # get the vertex with the minimum f_value from the open dict and make it current
-        curr_vertex = min(open_dict.items(), key=lambda x: x[1][-2])[0]
-        the_distance = open_dict[curr_vertex][0]
-        del open_dict[curr_vertex]  # remove vertex with the lowest f_value from the open list
-    return path, the_distance
+
+        # if got to the finish
+        if curr_vertex == finish_vertex:
+            print(curr_g)
+            return get_path(curr_vertex, prev_vertexes)
+
+        # look through all the adjacent vertexes
+        children = find_adjacent(curr_vertex, graph)
+        for child in children:
+            if child not in closed_set:
+                z_dif = graph[curr_vertex[-1]][curr_vertex[0]] - graph[child[-1]][child[0]]
+                child_g = curr_g + math.hypot(step, z_dif)
+                if child_g < g_and_h[child[-1]][child[0]][0]:
+                    child_h = calc_heuristic(child, finish_vertex, graph, step)
+                    child_f = child_g + child_h
+                    g_and_h[child[-1]][child[0]] = [child_g, child_h]
+                    prev_vertexes[child[-1]][child[0]] = (curr_vertex[0], curr_vertex[-1])
+                    heapq.heappush(open_heap, (child_f, child))
+    print("The path does not exist")
+    return None
 
 
 def main():
-    pass
+    start_time = time.time()
+    info = read_csv()
 
 
 if __name__ == '__main__':
     st = time.time()
-    # print(find_adjacent((2, 1),
-    #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
-    # main()
-
-    info = read_csv("/Users/matthewprytula/pythonProject/Pathfinding-project/task1/task1_data/example1.csv")
+    info = read_csv("task1/task1_data/example1.csv")
     graph = info[-1]
-    start = info[0]
-    finish = info[1]
-    # print(parsing_info(graph, 2, start, finish))
-    # print(find_adjacent((2, 1),
-    #                     [[1888.2200, 2992.222, 453.333], [234.333, 765.987, 762.433], [1234.567, 432.675, 999.999]]))
-    # main()
-    # graph = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [5, 3, 6, 2, 7, 345, 7, 34, 346, 46], [23, 4, 6, 3, 55, 474, 2, 45, 3, 0],
-             # [3, 4, 346, 44, 33, 4, 632, 63, 466, 34], [34, 34, 83, 422, 745, 55, 30, 35, 63, 97],
-             # [45, 6, 2, 545, 73, 2, 7, 245, 747, 4], [46, 4, 3, 1, 27, 4, 7, 74, 42, 54],
-             # [54, 4, 72, 27, 227, 25, 70, 2793, 3, 3], [23, 647, 3, 456, 38, 2, 8, 2, 47, 457],
-             # [362, 7, 2, 28, 29, 49, 50, 37, 547, 8356]]
-    # print(len(graph))
-    # start = (350, 360)
-    # finish = (1730, 1400)
-    # print(info)
-    print(path_finding(graph, start, finish, 5))
-    print("found")
+    start = info[1]
+    finish = info[2]
+    step = info[0]
+    the_path = path_finding(graph, start, finish, step)
+    print(the_path)
     f = time.time()
-    print(f-st)
+    print(f"time taken: {round(f - st)} sec")
