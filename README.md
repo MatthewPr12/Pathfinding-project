@@ -24,3 +24,15 @@ After that, the shortest path (F distance) is selected and goes to the vertex wi
 The advantage of the A * algorithm over the Dijkstra algorithm is that A * finds only the shortest path and does not find all variations of the path.
 
 The length of the shortest path will be the minimum G distance at the top of the destination.
+
+* Conclusion
+
+The shortest distance search algorithm is widely used in various aspects of technological life. For example, NPC game heroes often move this way.
+
+A * does not visit every vertex of the graph, so it is more optimized than, for example, Dijkstra's algorithm.
+
+This algorithm selects the top with the greatest potential to lead us to the final point.
+
+The more accurate the estimation distance, the faster the shortest path
+
+The array of open vertices is stored as a priority queue.
