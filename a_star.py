@@ -142,7 +142,7 @@ def path_finding(graph, start_vertex, finish_vertex, step):
 
         # if got to the finish
         if curr_vertex == finish_vertex:
-            print(curr_g)
+            print(f"Length: {curr_g}")
             return get_path(curr_vertex, prev_vertexes)
 
         # look through all the adjacent vertexes
@@ -163,17 +163,19 @@ def path_finding(graph, start_vertex, finish_vertex, step):
 
 def main():
     start_time = time.time()
-    info = read_csv()
+    info = read_csv("/Users/matthewprytula/pythonProject/Pathfinding-project/examples/example1.csv")
+    graph = info[-1]
+    starting_node = info[1]
+    ending_node = info[2]
+    step = info[0]
+    the_path = path_finding(graph, starting_node, ending_node, step)
+
+    with open("results.txt", "w", encoding="utf-8") as res_file:
+        res_file.write(str(the_path))
+
+    finish_time = time.time()
+    print(f"Time taken: {round(finish_time - start_time)} sec")
 
 
 if __name__ == '__main__':
-    st = time.time()
-    info = read_csv("task1/task1_data/example1.csv")
-    graph = info[-1]
-    start = info[1]
-    finish = info[2]
-    step = info[0]
-    the_path = path_finding(graph, start, finish, step)
-    print(the_path)
-    f = time.time()
-    print(f"time taken: {round(f - st)} sec")
+    main()
