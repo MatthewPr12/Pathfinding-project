@@ -1,8 +1,6 @@
 """
-each vertex has three parameters which are its coordinates
-x: index in the inner list
-y: index in the main nested list
-z: the height given as the element of the list
+A* pathfinding algorithm
+Finds the shortest path between to specified nodes if one exists
 """
 import csv
 import math
@@ -126,8 +124,10 @@ def path_finding(graph, start_vertex, finish_vertex, step):
     :return:
     """
     height, width = len(graph), len(graph[0])
+
     prev_vertexes = [[None for _ in range(width)] for _ in range(height)]  # to get the path later
-    g_and_h = [[[float("inf"), float("inf")] for _ in range(width)] for _ in range(height)]
+    g_and_h = [[[float("inf"), float("inf")] for _ in range(width)] for _ in range(height)]  # to store G and H
+
     start_g = 0
     start_h = calc_heuristic(start_vertex, finish_vertex, graph, step)
     g_and_h[start_vertex[-1]][start_vertex[0]] = [start_g, start_h]
@@ -162,6 +162,9 @@ def path_finding(graph, start_vertex, finish_vertex, step):
 
 
 def main():
+    """
+    the function connects all the code and writes the result into specified txt file
+    """
     start_time = time.time()
     info = read_csv("/Users/matthewprytula/pythonProject/Pathfinding-project/examples/example1.csv")
     graph = info[-1]
