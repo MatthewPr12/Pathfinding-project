@@ -10,3 +10,8 @@ Pathfinder algorithms are essential because they are used in applications such a
 
 Algorithm A * is implemented in Python. The algorithm is divided into smaller subtasks. Using the methods of functional decomposition
 
+* Pseudocode
+
+
+<img width="601" alt="Screenshot 2021-12-21 at 17 17 30" src="https://user-images.githubusercontent.com/91616807/146954037-671b2b6e-fd20-433e-a9ef-d2e8f4c11c21.png">
+
